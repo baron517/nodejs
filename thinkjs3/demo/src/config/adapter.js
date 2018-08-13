@@ -36,8 +36,8 @@ exports.model = {
   },
   mysql: {
     handle: mysql,
-    database: '',
-    prefix: 'think_',
+    database: 'test',
+    prefix: 'tb_',
     encoding: 'utf8',
     host: '127.0.0.1',
     port: '',

@@ -23,4 +23,19 @@ module.exports = class extends Base {
 
 
   }
+
+
+  async  findAction() {
+
+
+    let model = this.model('list');
+    let data = await model.where({id: '57831'}).find();
+
+
+    return this.success({name:"12388889888",data:data},"我们88888888");
+
+
+  }
+
+
 };
