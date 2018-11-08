@@ -1,34 +1,205 @@
 var net = require('net');
+var request = require('request');
+var qs = require('querystring');  
 
-var HOST = '127.0.0.1';
-var PORT = 6969;
+var url="http://shcs.techdom.cn";
 
-// 创建一个TCP服务器实例，调用listen函数开始监听指定端口
-// 传入net.createServer()的回调函数将作为”connection“事件的处理函数
-// 在每一个“connection”事件中，该回调函数接收到的socket对象是唯一的
+
+
+var HOST = '192.168.0.100';
+var PORT = 1400;
+var moment = require('moment');
+moment.locale('zh-cn');
+
+
+
+
+		function charuData(time_param,ondata)
+                {
+					
+					var post_data = {  
+					    create_time: time_param,  
+						data_t:ondata[0],
+						data_h:ondata[1],
+						data_p:ondata[2],
+						create_time:ondata[3],
+						louceng:ondata[4],
+						bianhao:ondata[5],
+						status:ondata[6]
+					}
+						
+					  
+					  
+					var content = qs.stringify(post_data);  
+					
+					
+					var  options = {
+			　　　　　　method: 'post',
+						url: url+"/Api/CommonApi/addData",
+						form: content,
+						headers: {
+						  'Content-Type': 'application/x-www-form-urlencoded'
+						}
+					  };
+					  
+					  request(options, function (err, res, body) {
+						if (err) {
+						  console.log(err)
+						}else {
+						  console.log(body);
+						}
+					  })
+
+
+                }
+
+
+                function tempData(time_param,ondata)
+                {
+
+                    console.log(ondata);
+					
+					
+					var post_data = {  
+						data_t:ondata[0],
+						data_h:ondata[1],
+						data_p:ondata[2],
+						create_time:ondata[3],
+						louceng:ondata[4],
+						bianhao:ondata[5],
+						status:ondata[6]
+					}
+						
+					  
+					  
+					var content = qs.stringify(post_data);  
+					
+					
+					var  options = {
+			　　　　　　method: 'post',
+						url: url+"/Api/CommonApi/addTempData",
+						form: content,
+						headers: {
+						  'Content-Type': 'application/x-www-form-urlencoded'
+						}
+					  };
+					  
+					  request(options, function (err, res, body) {
+						if (err) {
+						  console.log(err)
+						}else {
+						  console.log(body);
+						}
+					  })
+
+				
+                    
+                }
+
+
+				
+	var time_param="2018-09-07 22:30";	
+    var ondata=[30.2,56.7,8,"2018-09-07 22:30","01","NO1","ok"];
+
+//charuData(time_param,ondata);	
+				
+
+
 net.createServer(function(sock) {
 
-    // 我们获得一个连接 - 该连接自动关联一个socket对象
+
     console.log('CONNECTED: ' +
         sock.remoteAddress + ':' + sock.remotePort);
-
-    // 为这个socket实例添加一个"data"事件处理函数
+	
     sock.on('data', function(data) {
-        console.log('DATA ' + sock.remoteAddress + ': ' + data);
-        // 回发该数据，客户端将收到来自服务端的数据
-        setInterval(function()
+
+
+
+
+        if(data.indexOf("connected")==-1)
         {
-            sock.write('发送数据给客户端！');
-        },3000)
+
+            if(data.indexOf("\r\n")>-1)
+            {
+                var list=data.toString().split("\r\n");
+                
+
+                var create_time=moment().format('YYYY-MM-DD HH:mm');
+                var time_str=moment().format('mm');
+                for(var i=0;i<list.length;i++)
+                {
+                    var ondata=[];
+                    var louceng;
+                    var data_t=0;
+                    var data_h=0;
+                    var data_p=0;
+                    var bianhao;
+                    var status;
+                    if(list[0].indexOf(":")>-1)
+                    {
+                        louceng=list[0].split(":")[1];
+                    }
+
+                    if(list[i].indexOf("N")>-1)
+                    {
+                        var first=list[i].split("!")[0].trim();
+                        bianhao=first.split(".")[0];
+                        if(list[i].indexOf("ok")>-1)
+                        {
+                            status="ok";
+                            var second=list[i].split("!")[1];
+                            var strList=second.split(":");
+                            data_t=strList[1].split("H")[0].trim();
+                            data_h=strList[2].split("P")[0].trim();
+                            data_p=strList[3].trim();
+                        }
+                        else
+                        {
+                            status="error";
+                        }
+
+                        ondata.push(data_t,data_h,data_p,create_time,louceng,bianhao,status);
+
+						
+                        if(time_str=="30"||time_str=="00")
+                        {
+						
+                            console.log("time_str:"+time_str);
+
+                            charuData(create_time,ondata);
+                             console.log(ondata);
+
+                        }
+
+                        tempData(create_time,ondata);
+						
+
+
+
+                    }
+
+                }
+
+                
+
+            }
+        }
+
+
+
+
+
+
 
     });
 
-    // 为这个socket实例添加一个"close"事件处理函数
     sock.on('close', function(data) {
         console.log('CLOSED: ' +
             sock.remoteAddress + ' ' + sock.remotePort);
     });
 
 }).listen(PORT, HOST);
+
+
 
 console.log('Server listening on ' + HOST +':'+ PORT);

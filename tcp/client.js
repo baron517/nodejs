@@ -12,7 +12,15 @@ client.connect(PORT, HOST, function() {
 
     console.log('CONNECTED TO: ' + HOST + ':' + PORT);
     // 建立连接后立即向服务器发送数据，服务器将收到这些数据
-    client.write('I am Chuck Norris!');
+
+    setInterval(function()
+    {
+
+        client.write('I am Chuck Norris!');
+
+    },3000)
+
+
 
 });
 
